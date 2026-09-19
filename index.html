@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Admission Decision using Multiplexer Logic</title>
+<meta name="description" content="An interactive digital-logic laboratory demonstrating admission decisions made by a real 4:1 multiplexer.">
+<style>
+/* ============================================================
+   Smart Admission Decision using Multiplexer Logic
+   Core stylesheet — design tokens, layout, components
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg-primary:#f5f7fb;
+  --bg-secondary:#ffffff;
+  --bg-elevated:#ffffff;
+  --bg-grid: rgba(90,70,220,0.05);
+  --text-primary:#151a2e;
+  --text-secondary:#5b6178;
+  --text-muted:#8b91a7;
+  --border-soft: rgba(30,20,90,0.10);
+  --border-glow: rgba(124,58,237,0.35);
+
+  --cyan:#06b6d4;
+  --blue:#3b82f6;
+  --purple:#7c3aed;
+  --violet:#8b5cf6;
+  --pink:#ec4899;
+  --orange:#f97316;
+  --green:#10b981;
+  --red:#ef4444;
+  --yellow:#eab308;
+
+  --grad-brand: linear-gradient(135deg,var(--cyan),var(--blue) 45%,var(--purple) 85%);
+  --grad-warm: linear-gradient(135deg,var(--pink),var(--orange));
+  --grad-glow: linear-gradient(135deg, rgba(6,182,212,.18), rgba(124,58,237,.18));
+
+  --shadow-soft: 0 10px 30px rgba(20,20,60,0.08);
+  --shadow-lift: 0 20px 45px rgba(20,20,60,0.14);
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --font-display: 'Sora', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --nav-h: 72px;
+}
+
+[data-theme="dark"]{
+  --bg-primary:#0a0d1c;
+  --bg-secondary:#10142a;
+  --bg-elevated:#141935;
+  --bg-grid: rgba(124,58,237,0.10);
+  --text-primary:#eef1ff;
+  --text-secondary:#a6acc9;
+  --text-muted:#6b7194;
+  --border-soft: rgba(140,150,255,0.14);
+  --border-glow: rgba(6,182,212,0.45);
+  --shadow-soft: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-lift: 0 25px 60px rgba(0,0,0,0.55);
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0;
+  font-family:var(--font-display);
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  transition:background .35s ease,color .35s ease;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{ font-family:var(--font-display); margin:0 0 .4em; line-height:1.15; }
+p{ color:var(--text-secondary); line-height:1.65; margin:0 0 1em; }
+a{ color:inherit; }
+button{ font-family:inherit; }
+.mono{ font-family:var(--font-mono); }
+.container{ max-width:1180px; margin:0 auto; padding:0 24px; }
+.section{ padding:96px 0; position:relative; }
+.section-tight{ padding:64px 0; }
+.section-heading{ max-width:640px; margin-bottom:48px; }
+.section-heading .kicker{ color:var(--purple); font-weight:600; letter-spacing:.02em; font-size:.95rem; margin-bottom:.5em; }
+.section-heading h2{ font-size:clamp(1.8rem,3.4vw,2.6rem); font-weight:800; }
+[data-theme="dark"] .section-heading .kicker{ color:var(--cyan); }
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex; align-items:center; gap:.5em;
+  padding:14px 26px; border-radius:999px; border:none; cursor:pointer;
+  font-weight:600; font-size:.98rem; transition:transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn:active{ transform:scale(.97); }
+.btn-primary{ background:var(--grad-brand); color:#fff; box-shadow:0 12px 30px rgba(124,58,237,.35); }
+.btn-primary:hover{ filter:brightness(1.08); box-shadow:0 16px 38px rgba(124,58,237,.45); transform:translateY(-2px); }
+.btn-ghost{ background:var(--bg-elevated); color:var(--text-primary); border:1px solid var(--border-soft); }
+.btn-ghost:hover{ border-color:var(--border-glow); transform:translateY(-2px); }
+.btn-sm{ padding:9px 16px; font-size:.85rem; border-radius:10px; }
+.btn:disabled{ opacity:.5; cursor:not-allowed; transform:none !important; }
+
+/* ---------- Nav ---------- */
+.navbar{
+  position:fixed; top:0; left:0; right:0; z-index:200; height:var(--nav-h);
+  display:flex; align-items:center; backdrop-filter:blur(14px);
+  background:color-mix(in srgb, var(--bg-primary) 78%, transparent);
+  border-bottom:1px solid var(--border-soft);
+}
+.navbar .container{ display:flex; align-items:center; justify-content:space-between; width:100%; }
+.brand{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.05rem; }
+.brand-mark{ width:34px; height:34px; border-radius:10px; background:var(--grad-brand); display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--font-mono); font-weight:700; font-size:.8rem; box-shadow:0 6px 18px rgba(124,58,237,.4); }
+.nav-links{ display:flex; gap:6px; list-style:none; margin:0; padding:0; }
+.nav-links button{
+  background:none; border:none; color:var(--text-secondary); padding:9px 14px; border-radius:10px; cursor:pointer; font-size:.92rem; font-weight:600;
+  transition:color .2s, background .2s;
+}
+.nav-links button.active,.nav-links button:hover{ color:var(--text-primary); background:var(--bg-elevated); }
+.nav-actions{ display:flex; align-items:center; gap:10px; }
+.theme-toggle{
+  width:44px; height:44px; border-radius:12px; border:1px solid var(--border-soft); background:var(--bg-elevated);
+  cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;
+}
+.hamburger{ display:none; width:44px; height:44px; border-radius:12px; border:1px solid var(--border-soft); background:var(--bg-elevated); cursor:pointer; position:relative; }
+.hamburger span{ position:absolute; left:12px; right:12px; height:2px; background:var(--text-primary); border-radius:2px; transition:all .3s ease; }
+.hamburger span:nth-child(1){ top:15px; }
+.hamburger span:nth-child(2){ top:21px; }
+.hamburger span:nth-child(3){ top:27px; }
+.hamburger.open span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+.hamburger.open span:nth-child(2){ opacity:0; }
+.hamburger.open span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
+
+.mobile-menu{
+  position:fixed; top:0; right:0; height:100%; width:78%; max-width:320px; z-index:300;
+  background:var(--bg-secondary); border-left:1px solid var(--border-soft); box-shadow:var(--shadow-lift);
+  transform:translateX(100%); transition:transform .35s cubic-bezier(.4,0,.2,1); padding:28px 22px; display:flex; flex-direction:column; gap:6px;
+}
+.mobile-menu.open{ transform:translateX(0); }
+.mobile-menu button{ text-align:left; background:none; border:none; padding:14px 10px; font-size:1.02rem; font-weight:600; color:var(--text-primary); border-radius:10px; cursor:pointer; }
+.mobile-menu button:hover{ background:var(--bg-elevated); }
+.menu-scrim{ position:fixed; inset:0; background:rgba(5,5,20,.45); z-index:250; opacity:0; pointer-events:none; transition:opacity .3s ease; }
+.menu-scrim.open{ opacity:1; pointer-events:auto; }
+
+/* ---------- Page / views ---------- */
+.view{ display:none; padding-top:var(--nav-h); }
+.view.active{ display:block; }
+
+/* ---------- Hero ---------- */
+.hero{ position:relative; padding:120px 0 90px; overflow:hidden; }
+.hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center; }
+.eyebrow-pill{
+  display:inline-flex; align-items:center; gap:8px; padding:7px 16px; border-radius:999px;
+  background:var(--grad-glow); border:1px solid var(--border-glow); font-size:.82rem; font-weight:600; color:var(--purple); margin-bottom:22px;
+}
+[data-theme="dark"] .eyebrow-pill{ color:var(--cyan); }
+.hero h1{ font-size:clamp(2.3rem,5vw,3.6rem); font-weight:800; letter-spacing:-.01em; }
+.hero h1 .grad-text{ background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p.lead{ font-size:1.14rem; max-width:520px; margin-bottom:30px; }
+.hero-actions{ display:flex; gap:14px; flex-wrap:wrap; }
+.hero-stats{ display:flex; gap:34px; margin-top:44px; flex-wrap:wrap; }
+.hero-stat b{ display:block; font-size:1.5rem; font-weight:800; }
+.hero-stat span{ font-size:.82rem; color:var(--text-muted); }
+
+/* ---------- Cards ---------- */
+.card{
+  background:var(--bg-secondary); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:28px; box-shadow:var(--shadow-soft); transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.card-hover:hover{ transform:translateY(-5px); box-shadow:var(--shadow-lift); border-color:var(--border-glow); }
+.card-grid{ display:grid; gap:22px; }
+.grid-2{ grid-template-columns:repeat(2,1fr); }
+.grid-3{ grid-template-columns:repeat(3,1fr); }
+.grid-4{ grid-template-columns:repeat(4,1fr); }
+
+.glow-badge{
+  width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; background:var(--grad-glow); margin-bottom:16px;
+}
+
+/* ---------- Reveal-on-scroll ---------- */
+.reveal{ opacity:0; transform:translateY(26px); transition:opacity .6s ease, transform .6s ease; }
+.reveal.in{ opacity:1; transform:translateY(0); }
+.reveal-stagger.in > *{ transition-delay:calc(var(--i,0) * 70ms); }
+
+/* ---------- MUX diagram ---------- */
+.mux-stage{
+  background:var(--bg-secondary); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:20px; box-shadow:var(--shadow-soft); position:relative;
+}
+.mux-wire{ stroke:var(--border-soft); stroke-width:3; fill:none; transition:stroke .3s ease, stroke-width .3s ease, filter .3s ease; }
+.mux-wire.active{ stroke:url(#wireGrad); stroke-width:4.5; filter:drop-shadow(0 0 6px var(--cyan)); }
+.mux-signal{ r:5; fill:var(--cyan); opacity:0; }
+.mux-signal.run{ opacity:1; animation:travel 1.1s linear infinite; }
+.mux-box{ fill:var(--bg-elevated); stroke:var(--border-soft); stroke-width:2; }
+.mux-box.glow{ stroke:var(--purple); filter:drop-shadow(0 0 10px var(--border-glow)); }
+.mux-label{ font-family:var(--font-mono); font-size:15px; fill:var(--text-primary); font-weight:600; }
+.mux-sublabel{ font-family:var(--font-mono); font-size:11px; fill:var(--text-muted); }
+.mux-pin{ fill:var(--bg-primary); stroke:var(--border-soft); stroke-width:2; transition:all .25s ease; }
+.mux-pin.hi{ fill:var(--green); stroke:var(--green); }
+.mux-pin.lo{ fill:var(--text-muted); stroke:var(--text-muted); opacity:.5; }
+.mux-pin.selected{ filter:drop-shadow(0 0 8px var(--cyan)); }
+
+/* ---------- Toggle / bit switch ---------- */
+.bit-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px dashed var(--border-soft); gap:12px; }
+.bit-row:last-child{ border-bottom:none; }
+.bit-row label{ font-weight:600; font-size:.92rem; }
+.bit-row .hint{ display:block; font-size:.76rem; color:var(--text-muted); font-weight:400; margin-top:2px; }
+.bit-switch{ position:relative; width:60px; height:32px; border-radius:999px; border:none; cursor:pointer; background:var(--border-soft); flex-shrink:0; transition:background .25s ease; }
+.bit-switch::after{ content:''; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:#fff; box-shadow:0 3px 8px rgba(0,0,0,.25); transition:transform .25s cubic-bezier(.4,0,.2,1); }
+.bit-switch.on{ background:var(--grad-brand); }
+.bit-switch.on::after{ transform:translateX(28px); }
+.bit-switch .val{ position:absolute; top:50%; transform:translateY(-50%); font-family:var(--font-mono); font-size:.68rem; font-weight:700; color:#fff; }
+.bit-switch .val.v0{ right:9px; opacity:.9; }
+.bit-switch .val.v1{ left:10px; opacity:0; }
+.bit-switch.on .val.v0{ opacity:0; }
+.bit-switch.on .val.v1{ opacity:.95; }
+
+/* ---------- Result / output display ---------- */
+.output-y{
+  width:120px; height:120px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:2.6rem; font-weight:700; color:#fff; background:var(--text-muted);
+  box-shadow:0 0 0 8px var(--bg-primary), 0 0 0 9px var(--border-soft); transition:all .35s ease;
+}
+.output-y.one{ background:var(--grad-brand); box-shadow:0 0 0 8px var(--bg-primary), 0 0 40px rgba(6,182,212,.55); }
+
+/* ---------- Truth table ---------- */
+.table-wrap{ overflow-x:auto; border-radius:var(--radius-md); border:1px solid var(--border-soft); }
+table{ width:100%; border-collapse:collapse; min-width:560px; font-size:.92rem; }
+thead th{ text-align:left; padding:12px 16px; background:var(--bg-elevated); font-weight:700; font-size:.78rem; letter-spacing:.02em; color:var(--text-muted); border-bottom:1px solid var(--border-soft); white-space:nowrap; }
+tbody td{ padding:12px 16px; border-bottom:1px solid var(--border-soft); font-family:var(--font-mono); }
+tbody tr:last-child td{ border-bottom:none; }
+tbody tr.active-row{ background:var(--grad-glow); }
+tbody tr.pass td.status{ color:var(--green); font-weight:700; }
+tbody tr.fail td.status{ color:var(--red); font-weight:700; }
+tbody tr{ cursor:default; }
+
+/* ---------- Equation ---------- */
+.equation{
+  font-family:var(--font-mono); font-size:1.05rem; background:var(--bg-elevated); border:1px solid var(--border-soft);
+  border-radius:var(--radius-md); padding:20px 22px; line-height:2; overflow-x:auto; white-space:nowrap;
+}
+.equation .term{ padding:2px 6px; border-radius:6px; transition:all .3s ease; }
+.equation .term.active{ background:var(--grad-glow); color:var(--purple); font-weight:700; box-shadow:0 0 0 1px var(--border-glow); }
+[data-theme="dark"] .equation .term.active{ color:var(--cyan); }
+
+/* ---------- Pills / badges ---------- */
+.pill{ display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; font-size:.78rem; font-weight:700; }
+.pill-green{ background:rgba(16,185,129,.14); color:var(--green); }
+.pill-yellow{ background:rgba(234,179,8,.16); color:#b7860a; }
+[data-theme="dark"] .pill-yellow{ color:var(--yellow); }
+.pill-red{ background:rgba(239,68,68,.14); color:var(--red); }
+.pill-purple{ background:var(--grad-glow); color:var(--purple); }
+[data-theme="dark"] .pill-purple{ color:var(--cyan); }
+
+/* ---------- Tabs ---------- */
+.tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:26px; }
+.tab-btn{ padding:10px 18px; border-radius:999px; border:1px solid var(--border-soft); background:var(--bg-elevated); color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:.88rem; }
+.tab-btn.active{ background:var(--grad-brand); color:#fff; border-color:transparent; }
+
+/* ---------- Result card ---------- */
+.result-card{ text-align:center; padding:44px 28px; }
+.result-card h3{ font-size:1.9rem; font-weight:800; margin:14px 0 6px; }
+.result-meta{ display:flex; justify-content:center; gap:26px; margin:26px 0; flex-wrap:wrap; }
+.result-meta div{ text-align:left; font-family:var(--font-mono); font-size:.85rem; }
+.result-meta b{ display:block; font-size:1.1rem; font-family:var(--font-display); }
+
+/* ---------- Modal ---------- */
+.modal-scrim{ position:fixed; inset:0; background:rgba(6,6,20,.55); backdrop-filter:blur(3px); z-index:400; opacity:0; pointer-events:none; transition:opacity .25s ease; display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal-scrim.open{ opacity:1; pointer-events:auto; }
+.modal{ background:var(--bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--border-soft); max-width:560px; width:100%; max-height:82vh; overflow-y:auto; padding:30px; box-shadow:var(--shadow-lift); transform:translateY(24px) scale(.97); opacity:0; transition:all .3s cubic-bezier(.4,0,.2,1); }
+.modal-scrim.open .modal{ transform:translateY(0) scale(1); opacity:1; }
+.modal-close{ float:right; background:var(--bg-elevated); border:1px solid var(--border-soft); width:32px; height:32px; border-radius:9px; cursor:pointer; font-size:1rem; }
+.explain-step{ display:flex; gap:14px; padding:12px 0; border-bottom:1px dashed var(--border-soft); opacity:0; transform:translateX(-10px); transition:all .4s ease; }
+.explain-step.show{ opacity:1; transform:translateX(0); }
+.explain-step .num{ width:28px; height:28px; border-radius:8px; background:var(--grad-glow); color:var(--purple); font-family:var(--font-mono); font-weight:700; font-size:.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+[data-theme="dark"] .explain-step .num{ color:var(--cyan); }
+
+/* ---------- Processing overlay ---------- */
+.processing{ text-align:center; padding:50px 20px; }
+.processing .line{ font-family:var(--font-mono); font-size:.92rem; color:var(--text-muted); opacity:0; transition:opacity .3s ease; margin-bottom:8px; }
+.processing .line.show{ opacity:1; color:var(--text-primary); }
+.spinner{ width:44px; height:44px; border-radius:50%; border:3px solid var(--border-soft); border-top-color:var(--cyan); animation:spin 1s linear infinite; margin:0 auto 22px; }
+
+/* ---------- Tooltip ---------- */
+.tip{ position:relative; cursor:help; border-bottom:1px dotted var(--text-muted); }
+.tip::after{
+  content:attr(data-tip); position:absolute; bottom:130%; left:50%; transform:translateX(-50%) translateY(4px);
+  background:var(--text-primary); color:var(--bg-primary); font-size:.74rem; padding:8px 12px; border-radius:8px; width:220px;
+  opacity:0; pointer-events:none; transition:all .2s ease; z-index:50; font-weight:500; line-height:1.4;
+}
+.tip:hover::after{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ---------- Progress bar ---------- */
+.progress-bar{ height:10px; border-radius:999px; background:var(--border-soft); overflow:hidden; }
+.progress-bar > div{ height:100%; background:var(--grad-brand); border-radius:999px; transition:width .6s ease; }
+.check-list{ list-style:none; padding:0; margin:14px 0 0; font-size:.88rem; }
+.check-list li{ padding:6px 0; color:var(--text-muted); }
+.check-list li.done{ color:var(--green); font-weight:600; }
+
+/* ---------- Footer ---------- */
+footer{ padding:44px 0; border-top:1px solid var(--border-soft); text-align:center; color:var(--text-muted); font-size:.86rem; }
+
+/* ---------- Utility ---------- */
+.flex{ display:flex; }
+.gap-10{ gap:10px; } .gap-16{ gap:16px; }
+.mt-24{ margin-top:24px; } .mb-24{ margin-bottom:24px; }
+.text-center{ text-align:center; }
+.small{ font-size:.82rem; }
+.muted{ color:var(--text-muted); }
+.form-field{ margin-bottom:18px; }
+.form-field label{ display:block; font-weight:600; font-size:.88rem; margin-bottom:6px; }
+.form-field input[type="text"],.form-field input[type="number"],.form-field select{
+  width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--border-soft); background:var(--bg-primary); color:var(--text-primary); font-family:inherit; font-size:.92rem;
+}
+.search-row{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+.search-row input,.search-row select{ padding:11px 13px; border-radius:10px; border:1px solid var(--border-soft); background:var(--bg-elevated); color:var(--text-primary); font-size:.9rem; }
+.search-row input{ flex:1; min-width:180px; }
+
+/* ============================================================
+   Animation keyframes
+   ============================================================ */
+
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+@keyframes travel{
+  0%{ offset-distance:0%; opacity:0; }
+  8%{ opacity:1; }
+  92%{ opacity:1; }
+  100%{ offset-distance:100%; opacity:0; }
+}
+
+@keyframes pulseGlow{
+  0%,100%{ filter:drop-shadow(0 0 4px var(--cyan)); }
+  50%{ filter:drop-shadow(0 0 14px var(--purple)); }
+}
+
+@keyframes floatY{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-14px); }
+}
+
+@keyframes fadeUp{
+  from{ opacity:0; transform:translateY(18px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+@keyframes popIn{
+  0%{ opacity:0; transform:scale(.85); }
+  70%{ transform:scale(1.03); }
+  100%{ opacity:1; transform:scale(1); }
+}
+
+@keyframes slideInRight{
+  from{ opacity:0; transform:translateX(24px); }
+  to{ opacity:1; transform:translateX(0); }
+}
+@keyframes slideOutLeft{
+  from{ opacity:1; transform:translateX(0); }
+  to{ opacity:0; transform:translateX(-24px); }
+}
+
+@keyframes gridDrift{
+  from{ background-position:0 0; }
+  to{ background-position:80px 80px; }
+}
+
+@keyframes blobMove{
+  0%,100%{ transform:translate(0,0) scale(1); }
+  33%{ transform:translate(30px,-24px) scale(1.08); }
+  66%{ transform:translate(-24px,18px) scale(.95); }
+}
+
+.bg-fx{
+  position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size:42px 42px;
+  animation:gridDrift 22s linear infinite;
+}
+.bg-blob{ position:absolute; width:520px; height:520px; border-radius:50%; filter:blur(90px); opacity:.35; animation:blobMove 18s ease-in-out infinite; }
+.bg-blob.b1{ background:var(--cyan); top:-160px; left:-140px; }
+.bg-blob.b2{ background:var(--purple); bottom:-180px; right:-120px; animation-delay:4s; }
+.bg-blob.b3{ background:var(--pink); top:40%; left:60%; animation-delay:9s; opacity:.2; }
+
+.float{ animation:floatY 5s ease-in-out infinite; }
+.pop-in{ animation:popIn .45s cubic-bezier(.34,1.56,.64,1) both; }
+.fade-up{ animation:fadeUp .5s ease both; }
+.slide-in{ animation:slideInRight .35s ease both; }
+
+.result-emoji{ font-size:3.4rem; display:block; }
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.001s !important; animation-iteration-count:1 !important; transition-duration:.001s !important; scroll-behavior:auto !important; }
+}
+
+/* ============================================================
+   Responsive rules — 360 / 390 / 768 / 1024 / 1440
+   ============================================================ */
+
+@media (max-width:1024px){
+  .hero-grid{ grid-template-columns:1fr; }
+  .grid-4{ grid-template-columns:repeat(2,1fr); }
+  .grid-3{ grid-template-columns:repeat(2,1fr); }
+}
+
+@media (max-width:900px){
+  .nav-links{ display:none; }
+  .hamburger{ display:flex; }
+}
+
+@media (max-width:768px){
+  .section{ padding:64px 0; }
+  .grid-2{ grid-template-columns:1fr; }
+  .grid-3{ grid-template-columns:1fr; }
+  .grid-4{ grid-template-columns:repeat(2,1fr); }
+  .hero{ padding:100px 0 60px; text-align:left; }
+  .result-meta{ flex-direction:column; align-items:center; gap:14px; }
+  table{ min-width:520px; }
+}
+
+@media (max-width:480px){
+  .container{ padding:0 16px; }
+  .grid-4{ grid-template-columns:1fr 1fr; }
+  .hero-stats{ gap:22px; }
+  .btn{ padding:12px 20px; font-size:.9rem; }
+  .card{ padding:20px; }
+  .brand span.brand-text{ display:none; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== NAVBAR ===================== -->
+<nav class="navbar">
+  <div class="container">
+    <div class="brand"><span class="brand-mark">Y</span><span class="brand-text">Smart Admission MUX</span></div>
+    <ul class="nav-links">
+      <li><button data-view="home">Home</button></li>
+      <li><button data-view="admission">Admission Simulator</button></li>
+      <li><button data-view="simulator">MUX Simulator</button></li>
+      <li><button data-view="learn">Learn</button></li>
+      <li><button data-view="testlab">Test Lab</button></li>
+      <li><button data-view="dataset">Dataset</button></li>
+      <li><button data-view="analytics">Analytics</button></li>
+      <li><button data-view="about">About</button></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+      <button class="hamburger" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<div class="menu-scrim" id="menuScrim"></div>
+<div class="mobile-menu" id="mobileMenu">
+  <button data-view="home">Home</button>
+  <button data-view="admission">🎓 Admission Simulator</button>
+  <button data-view="simulator">⚡ MUX Simulator</button>
+  <button data-view="learn">📚 Learn MUX</button>
+  <button data-view="testlab">🧪 Test Lab</button>
+  <button data-view="dataset">📊 Dataset</button>
+  <button data-view="analytics">📈 Analytics</button>
+  <button data-view="about">ℹ️ About</button>
+</div>
+
+<!-- ===================== HOME / HERO ===================== -->
+<section class="view" id="view-home">
+  <div class="hero">
+    <div class="container hero-grid">
+      <div class="reveal in">
+        <div class="eyebrow-pill">⚡ Digital Fundamentals Project</div>
+        <h1>Smart Admission<br><span class="grad-text">Decision</span><br>using Multiplexer Logic</h1>
+        <p class="lead">An interactive digital-logic laboratory where a real 4:1 multiplexer — not an if/else script — decides whether a candidate is admitted.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="btnTrySimulator">🚀 Try Admission Simulator</button>
+          <button class="btn btn-ghost" id="btnExploreMux">⚡ Explore MUX</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><b>4:1</b><span>Multiplexer Core</span></div>
+          <div class="hero-stat"><b>4</b><span>Policy Variations</span></div>
+          <div class="hero-stat"><b>15</b><span>Automated Test Cases</span></div>
+          <div class="hero-stat"><b>42</b><span>Synthetic Candidates</span></div>
+        </div>
+      </div>
+      <div class="reveal in float">
+        <div class="mux-stage" id="heroMux"></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section section-tight">
+    <div class="container">
+      <div class="section-heading reveal">
+        <div class="kicker">How it works</div>
+        <h2>Candidate criteria → Boolean signals → MUX decision</h2>
+      </div>
+      <div class="card-grid grid-4">
+        <div class="card card-hover reveal" style="--i:0">
+          <div class="glow-badge">🧾</div>
+          <h4>Candidate Criteria</h4>
+          <p class="small">Academic score, entrance eligibility, subject requirements, documents, category, quota and income conditions.</p>
+        </div>
+        <div class="card card-hover reveal" style="--i:1">
+          <div class="glow-badge">0/1</div>
+          <h4>Boolean Signals</h4>
+          <p class="small">Every criterion becomes a strict 0 or 1 — the only currency a digital circuit understands.</p>
+        </div>
+        <div class="card card-hover reveal" style="--i:2">
+          <div class="glow-badge">🎛️</div>
+          <h4>MUX Inputs &amp; Select Lines</h4>
+          <p class="small">A policy maps those bits onto I0–I3 and the select lines S1, S0 — nothing else touches the MUX.</p>
+        </div>
+        <div class="card card-hover reveal" style="--i:3">
+          <div class="glow-badge">🎓</div>
+          <h4>Admission Decision</h4>
+          <p class="small">The 4:1 MUX output Y, combined with a documented rule, becomes Eligible, Review, or Not Eligible.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== LEARN MUX ===================== -->
+<section class="view" id="view-learn">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">📚 Learn MUX</div>
+        <h2>What is a 4:1 Multiplexer?</h2>
+        <p>A multiplexer selects one of several input signals and routes it to a single output, based on the value of its select lines. Work through the tutorial, then try the interactive lesson below.</p>
+      </div>
+
+      <div class="card-grid grid-2 reveal in" style="align-items:start">
+        <div class="card">
+          <div id="tutorialSlide"></div>
+          <div class="flex gap-10 mt-24" style="justify-content:space-between">
+            <button class="btn btn-ghost btn-sm" id="slidePrev">← Previous</button>
+            <button class="btn btn-primary btn-sm" id="slideNext">Next →</button>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Your Learning Progress</h4>
+          <div id="learningProgress"></div>
+        </div>
+      </div>
+
+      <div class="card mt-24 reveal in">
+        <h3>Interactive Lesson — choose S1 and S0</h3>
+        <p class="small muted">Experiment freely: change the select lines and watch which input gets routed to the output.</p>
+        <div class="card-grid grid-2" style="align-items:center">
+          <div>
+            <div class="bit-row"><label>I0<span class="hint">Data input 0</span></label><button class="bit-switch on" id="lesson_I0"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+            <div class="bit-row"><label>I1<span class="hint">Data input 1</span></label><button class="bit-switch" id="lesson_I1"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+            <div class="bit-row"><label>I2<span class="hint">Data input 2</span></label><button class="bit-switch on" id="lesson_I2"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+            <div class="bit-row"><label>I3<span class="hint">Data input 3</span></label><button class="bit-switch" id="lesson_I3"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+            <div class="bit-row"><label class="tip" data-tip="Select lines determine which input is connected to the output.">S1</label><button class="bit-switch" id="lesson_s1"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+            <div class="bit-row"><label>S0</label><button class="bit-switch" id="lesson_s0"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          </div>
+          <div>
+            <div class="mux-stage" id="lessonDiagram"></div>
+            <div class="text-center small mt-24" id="lessonDetail"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-24 reveal in">
+        <h3>🧠 Mini Quiz</h3>
+        <div id="quizBody"></div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== MUX SIMULATOR ===================== -->
+<section class="view" id="view-simulator">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">⚡ MUX Simulator</div>
+        <h2>Control the 4:1 multiplexer directly</h2>
+        <p>Set I0–I3 and the select lines S1, S0 by hand and watch the diagram, truth table and Boolean equation update live.</p>
+      </div>
+      <div class="card-grid grid-2 reveal in" style="align-items:start">
+        <div class="card">
+          <h4>Data Inputs</h4>
+          <div class="bit-row"><label class="tip" data-tip="Data input 0.">I0</label><button class="bit-switch" id="sw_I0"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          <div class="bit-row"><label class="tip" data-tip="Data input 1.">I1</label><button class="bit-switch" id="sw_I1"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          <div class="bit-row"><label class="tip" data-tip="Data input 2.">I2</label><button class="bit-switch" id="sw_I2"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          <div class="bit-row"><label class="tip" data-tip="Data input 3.">I3</label><button class="bit-switch" id="sw_I3"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          <h4 class="mt-24">Select Lines</h4>
+          <div class="bit-row"><label class="tip" data-tip="Select lines determine which input is connected to the output.">S1</label><button class="bit-switch" id="sw_s1"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          <div class="bit-row"><label>S0</label><button class="bit-switch" id="sw_s0"><span class="val v0">0</span><span class="val v1">1</span></button></div>
+          <div class="mt-24 text-center">
+            <div class="output-y" id="simOutput">0</div>
+            <div class="small muted mt-24" id="simDetail"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="mux-stage" id="simDiagram"></div>
+        </div>
+      </div>
+
+      <div class="card mt-24 reveal in">
+        <h3>Boolean Expression</h3>
+        <p class="small muted">The currently active product term (matching the selected input) is highlighted.</p>
+        <div class="equation" id="simEquation"></div>
+      </div>
+
+      <div class="card mt-24 reveal in">
+        <h3>📋 Truth Table</h3>
+        <p class="small muted">All four S1S0 combinations for the current I0–I3 values. The active row matches your current select-line setting.</p>
+        <div id="simTruthTable"></div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== ADMISSION SIMULATOR ===================== -->
+<section class="view" id="view-admission">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">🎓 Admission Decision Simulator</div>
+        <h2>Evaluate a fictional candidate</h2>
+        <p>All data below is synthetic and for demonstration only. Toggle criteria, pick a policy, then run the MUX evaluation.</p>
+      </div>
+
+      <div class="card-grid grid-2 reveal in" style="align-items:start">
+        <div class="card">
+          <h4>Candidate Criteria</h4>
+          <div id="criteriaForm"></div>
+          <div class="form-field mt-24">
+            <label>Policy Mode</label>
+            <select id="policySelect"></select>
+          </div>
+          <button class="btn btn-primary" id="btnEvaluate" style="width:100%;justify-content:center">Evaluate Candidate</button>
+        </div>
+
+        <div>
+          <div class="card" id="processingOverlay" style="display:none">
+            <div class="processing"></div>
+          </div>
+          <div class="card result-card" id="admissionResult" style="display:none">
+            <div id="resultCard"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-grid grid-2 mt-24 reveal in" id="admissionDetails" style="align-items:start">
+        <div class="card">
+          <h4>MUX Diagram — Mapped Inputs</h4>
+          <div class="mux-stage" id="resultDiagram"></div>
+        </div>
+        <div class="card" id="resultLogicPanel">
+          <h4>Logic State Panel</h4>
+          <p class="small muted">Evaluate a candidate to populate the intermediate logic states.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- Explain Decision modal -->
+<div class="modal-scrim" id="explainModal">
+  <div class="modal">
+    <button class="modal-close" data-close-modal>✕</button>
+    <h3>🔍 How did the MUX decide?</h3>
+    <div id="explainBody"></div>
+  </div>
+</div>
+
+<!-- ===================== TEST LAB ===================== -->
+<section class="view" id="view-testlab">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">🧪 Test Lab</div>
+        <h2>15 automated test cases</h2>
+        <p>10 normal cases (TC01–TC10) plus 5 edge/fault cases (TC11–TC15), executed live against the real MUX engine — nothing here is hardcoded.</p>
+        <button class="btn btn-primary mt-24" id="btnRunTests">▶ Run All Tests</button>
+      </div>
+      <div id="testSummary"></div>
+      <div class="table-wrap mt-24 reveal in">
+        <table>
+          <thead><tr><th>Test ID</th><th>Type</th><th>Description</th><th>Inputs [I0..I3]</th><th>Select</th><th>Expected</th><th>Actual</th><th>Status</th></tr></thead>
+          <tbody id="testTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== DATASET EXPLORER ===================== -->
+<section class="view" id="view-dataset">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">📊 Candidate Dataset</div>
+        <h2>42 reproducible synthetic candidates</h2>
+        <p>Generated with a fixed random seed for reproducibility. Fictional data only — no real student records. Source: <code>data/candidates.json</code>.</p>
+      </div>
+      <div id="datasetStats" class="mb-24"></div>
+      <div class="search-row reveal in">
+        <input type="text" id="datasetSearch" placeholder="Search candidate ID…">
+        <select id="datasetFilter">
+          <option value="all">All Decisions</option>
+          <option value="ELIGIBLE">Eligible</option>
+          <option value="REVIEW">Review</option>
+          <option value="NOT_ELIGIBLE">Not Eligible</option>
+        </select>
+        <select id="datasetSort">
+          <option value="id">Sort: Candidate ID</option>
+          <option value="score_desc">Sort: Score (high→low)</option>
+          <option value="score_asc">Sort: Score (low→high)</option>
+        </select>
+      </div>
+      <div class="table-wrap reveal in">
+        <table>
+          <thead><tr><th>ID</th><th>Score</th><th>Policy</th><th>MUX Inputs</th><th>Select</th><th>Selected</th><th>Y</th><th>Decision</th></tr></thead>
+          <tbody id="datasetTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== ANALYTICS ===================== -->
+<section class="view" id="view-analytics">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">📈 Analytics</div>
+        <h2>Dataset-wide MUX &amp; decision statistics</h2>
+      </div>
+      <div id="analyticsHeadline" class="mb-24"></div>
+      <div class="card-grid grid-3 reveal in">
+        <div class="card">
+          <h4>Decisions</h4>
+          <div id="chartDecisions"></div>
+        </div>
+        <div class="card">
+          <h4>MUX Input Selected</h4>
+          <div id="chartSelections"></div>
+        </div>
+        <div class="card">
+          <h4>Policy Distribution</h4>
+          <div id="chartPolicies"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section class="view" id="view-about">
+  <section class="section">
+    <div class="container">
+      <div class="section-heading reveal in">
+        <div class="kicker">ℹ️ About Project</div>
+        <h2>Smart Admission Decision using Multiplexer Logic</h2>
+      </div>
+      <div class="card-grid grid-2 reveal in">
+        <div class="card">
+          <h4>Problem Statement</h4>
+          <p>Admission offices must combine several eligibility criteria into a single, explainable decision. This project demonstrates that a 4:1 multiplexer — a core Digital Fundamentals concept — can serve as the actual decision-making mechanism.</p>
+          <h4>Objective</h4>
+          <p>Design a software solution for a real-world admission scenario using a specified digital-system concept (the MUX) and reproducible synthetic data, with full traceability from candidate criteria through to the final decision.</p>
+          <h4>Why MUX?</h4>
+          <p>A MUX is the simplest circuit that "chooses" an output from several inputs based on a control signal — a direct hardware analogue of an admissions office choosing which eligibility path applies to a candidate.</p>
+        </div>
+        <div class="card">
+          <h4>System Architecture</h4>
+          <div class="mono small" style="line-height:2">
+            CANDIDATE DATA<br>↓<br>ELIGIBILITY CRITERIA<br>↓<br>BOOLEAN CONVERSION<br>↓<br>MUX INPUT MAPPING<br>↓<br>SELECT LINES<br>↓<br>4:1 MULTIPLEXER<br>↓<br>OUTPUT (Y)<br>↓<br>ADMISSION DECISION
+          </div>
+          <h4 class="mt-24">Technology Stack</h4>
+          <p>HTML5, CSS3, and vanilla JavaScript only — no frameworks, no build step, no backend. Runs from any static file server.</p>
+          <h4>Testing</h4>
+          <p>15 automated test cases (10 normal + 5 edge/fault) executed live in the Test Lab against the real MUX engine.</p>
+          <h4>Future Improvements</h4>
+          <p>An 8:1 MUX tier for finer-grained criteria, exportable audit logs per candidate, and a visual policy builder.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<footer>
+  <div class="container">Smart Admission Decision using Multiplexer Logic — an academic Digital Fundamentals project. All candidate data is synthetic.</div>
+</footer>
+<script>
+/* ============================================================
+   theme.js — dark / light mode with persistence
+   ============================================================ */
+
+const Theme = (() => {
+  const KEY = 'sam_theme';
+
+  function apply(mode){
+    document.documentElement.setAttribute('data-theme', mode);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = mode === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(KEY, mode); } catch(e){ /* storage unavailable */ }
+  }
+
+  function init(){
+    let saved = null;
+    try { saved = localStorage.getItem(KEY); } catch(e){ /* ignore */ }
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    apply(saved || (prefersDark ? 'dark' : 'light'));
+
+    const btn = document.getElementById('themeToggle');
+    if (btn){
+      btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        apply(current === 'dark' ? 'light' : 'dark');
+        document.dispatchEvent(new CustomEvent('sam:themechange'));
+      });
+    }
+  }
+
+  return { init, apply };
+})();
+
+/* ============================================================
+   mux.js — Core 4:1 Multiplexer logic engine
+   ============================================================
+   This is the single source of truth for MUX behaviour used by
+   every page (hero diagram, simulator, admission engine, truth
+   table, learning lesson, and the test lab).
+*/
+
+const MUX = (() => {
+
+  /** Sanitize any incoming value to a strict boolean 0/1.
+   *  Handles undefined/missing values, non-boolean numbers (e.g. 2),
+   *  and non-numeric input gracefully — used by the "invalid input"
+   *  and "missing value" edge/fault test cases. */
+  function bit(v){
+    if (v === true) return 1;
+    if (v === false || v === undefined || v === null || Number.isNaN(v)) return 0;
+    const n = Number(v);
+    if (Number.isNaN(n)) return 0;
+    return n > 0 ? 1 : 0;
+  }
+
+  /** Given S1,S0 -> index of selected input (0-3) */
+  function selectIndex(s1, s0){
+    s1 = bit(s1); s0 = bit(s0);
+    return (s1 << 1) | s0;
+  }
+
+  /** Full 4:1 MUX evaluation.
+   *  I = [I0,I1,I2,I3]
+   *  Returns { I, s1, s0, sel, selLabel, y } */
+  function evaluate(I, s1, s0){
+    const clean = [0,1,2,3].map(i => bit(I[i]));
+    s1 = bit(s1); s0 = bit(s0);
+    const sel = selectIndex(s1, s0);
+    const y = clean[sel];
+    return { I: clean, s1, s0, sel, selLabel: 'I' + sel, y };
+  }
+
+  /** Boolean-expression term index currently active (0-3), matching
+   *  Y = I0.S1'.S0' + I1.S1'.S0 + I2.S1.S0' + I3.S1.S0 */
+  function activeTerm(s1, s0){
+    return selectIndex(s1, s0);
+  }
+
+  /** Build the 4-row truth table for a given set of I0..I3 */
+  function truthTable(I){
+    const rows = [];
+    for (let s1 = 0; s1 <= 1; s1++){
+      for (let s0 = 0; s0 <= 1; s0++){
+        const r = evaluate(I, s1, s0);
+        rows.push(r);
+      }
+    }
+    // natural order S1S0 = 00,01,10,11
+    return rows.sort((a,b) => (a.s1*2+a.s0) - (b.s1*2+b.s0));
+  }
+
+  /** Render the interactive SVG MUX diagram into a container element.
+   *  opts: { I:[i0..i3], s1, s0, animate:boolean, compact:boolean } */
+  function renderDiagram(container, opts){
+    const { I, s1, s0, animate = true } = opts;
+    const r = evaluate(I, s1, s0);
+    const w = 620, h = 320;
+    const inY = [70, 130, 190, 250];
+    const boxX = 300, boxY = 90, boxW = 140, boxH = 150;
+    const outX = boxX + boxW;
+
+    const wires = inY.map((y, i) => {
+      const active = r.sel === i;
+      const path = `M60,${y} L${boxX},${boxY + 20 + i*36}`;
+      return `
+        <path id="wire-i${i}" class="mux-wire ${active ? 'active' : ''}" d="${path}"></path>
+        ${active && animate ? `<circle class="mux-signal run" style="offset-path:path('${path}')"></circle>` : ''}
+      `;
+    }).join('');
+
+    const outPath = `M${outX + boxW - boxW},${boxY + boxH/2} L${outX},${boxY+boxH/2}`;
+    // recompute correctly: output line goes from box right edge to far right
+    const outLine = `M${boxX+boxW},${boxY+boxH/2} L${w-40},${boxY+boxH/2}`;
+
+    const svg = `
+      <svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="4 to 1 multiplexer diagram">
+        <defs>
+          <linearGradient id="wireGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="var(--cyan)"/>
+            <stop offset="100%" stop-color="var(--purple)"/>
+          </linearGradient>
+        </defs>
+        ${wires}
+        <path class="mux-wire ${r.y===1?'active':''}" d="${outLine}"></path>
+        ${r.y===1 && animate ? `<circle class="mux-signal run" style="offset-path:path('${outLine}')"></circle>` : ''}
+
+        ${inY.map((y,i)=>`
+          <circle class="mux-pin ${r.I[i]?'hi':'lo'} ${r.sel===i?'selected':''}" cx="40" cy="${y}" r="9"></circle>
+          <text class="mux-label" x="8" y="${y+5}">I${i}</text>
+          <text class="mux-sublabel" x="8" y="${y+18}">= ${r.I[i]}</text>
+        `).join('')}
+
+        <rect class="mux-box ${'glow'}" x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="16"></rect>
+        <text class="mux-label" x="${boxX+boxW/2}" y="${boxY+34}" text-anchor="middle" style="font-size:17px">4:1</text>
+        <text class="mux-sublabel" x="${boxX+boxW/2}" y="${boxY+52}" text-anchor="middle">MUX</text>
+        <text class="mux-sublabel" x="${boxX+boxW/2}" y="${boxY+boxH-14}" text-anchor="middle">selected: ${r.selLabel}</text>
+
+        <line x1="${boxX+30}" y1="${boxY+boxH}" x2="${boxX+30}" y2="${boxY+boxH+30}" class="mux-wire ${r.s1?'active':''}"></line>
+        <circle class="mux-pin ${r.s1?'hi':'lo'}" cx="${boxX+30}" cy="${boxY+boxH+34}" r="8"></circle>
+        <text class="mux-sublabel" x="${boxX+30}" y="${boxY+boxH+54}" text-anchor="middle">S1=${r.s1}</text>
+
+        <line x1="${boxX+boxW-30}" y1="${boxY+boxH}" x2="${boxX+boxW-30}" y2="${boxY+boxH+30}" class="mux-wire ${r.s0?'active':''}"></line>
+        <circle class="mux-pin ${r.s0?'hi':'lo'}" cx="${boxX+boxW-30}" cy="${boxY+boxH+34}" r="8"></circle>
+        <text class="mux-sublabel" x="${boxX+boxW-30}" y="${boxY+boxH+54}" text-anchor="middle">S0=${r.s0}</text>
+
+        <circle class="mux-pin ${r.y?'hi':'lo'}" cx="${w-40}" cy="${boxY+boxH/2}" r="10" style="${r.y?'filter:drop-shadow(0 0 8px var(--cyan))':''}"></circle>
+        <text class="mux-label" x="${w-30}" y="${boxY+boxH/2+5}">Y</text>
+        <text class="mux-sublabel" x="${w-30}" y="${boxY+boxH/2+20}">= ${r.y}</text>
+      </svg>
+    `;
+    container.innerHTML = svg;
+    return r;
+  }
+
+  /** Render the Boolean equation with the active term highlighted */
+  function renderEquation(container, s1, s0){
+    const active = activeTerm(s1, s0);
+    const terms = [
+      { i:0, html: `I0·S1'·S0'` },
+      { i:1, html: `I1·S1'·S0` },
+      { i:2, html: `I2·S1·S0'` },
+      { i:3, html: `I3·S1·S0` },
+    ];
+    container.innerHTML = `Y&nbsp;=&nbsp;` + terms.map((t,idx) =>
+      `<span class="term ${t.i===active?'active':''}">${t.html}</span>${idx<3?' + ':''}`
+    ).join('');
+  }
+
+  return { bit, selectIndex, evaluate, activeTerm, truthTable, renderDiagram, renderEquation };
+})();
+
+/* Auto-generated mirror of data/candidates.json, embedded so the app
+   works from file:// as well as a local server without extra fetch/CORS
+   configuration. Source of truth for the dataset is data/candidates.json. */
+const CANDIDATES = [
+  {
+    "candidateId": "CAND-001",
+    "academicScore": 51,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-002",
+    "academicScore": 90,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": true,
+    "incomeEligible": true,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 1,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-003",
+    "academicScore": 99,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 1,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-004",
+    "academicScore": 80,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-005",
+    "academicScore": 59,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-006",
+    "academicScore": 55,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-007",
+    "academicScore": 62,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-008",
+    "academicScore": 53,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-009",
+    "academicScore": 85,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 1,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-010",
+    "academicScore": 76,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-011",
+    "academicScore": 71,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-012",
+    "academicScore": 87,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-013",
+    "academicScore": 55,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-014",
+    "academicScore": 79,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-015",
+    "academicScore": 100,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": true,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 0,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-016",
+    "academicScore": 49,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-017",
+    "academicScore": 66,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-018",
+    "academicScore": 49,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-019",
+    "academicScore": 62,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-020",
+    "academicScore": 72,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-021",
+    "academicScore": 44,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-022",
+    "academicScore": 67,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": true,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 1,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-023",
+    "academicScore": 99,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-024",
+    "academicScore": 89,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-025",
+    "academicScore": 52,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-026",
+    "academicScore": 67,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-027",
+    "academicScore": 39,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-028",
+    "academicScore": 44,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-029",
+    "academicScore": 94,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-030",
+    "academicScore": 57,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-031",
+    "academicScore": 66,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-032",
+    "academicScore": 87,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-033",
+    "academicScore": 69,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-034",
+    "academicScore": 42,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": true,
+    "incomeEligible": true,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-035",
+    "academicScore": 48,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-036",
+    "academicScore": 59,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-037",
+    "academicScore": 38,
+    "academicEligible": false,
+    "entranceEligible": false,
+    "subjectEligible": false,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 0,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 0
+    },
+    "selectedInput": "I0",
+    "muxOutput": 0,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-038",
+    "academicScore": 74,
+    "academicEligible": true,
+    "entranceEligible": false,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 0,
+      "I2": 0,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 0
+    },
+    "selectedInput": "I2",
+    "muxOutput": 0,
+    "expectedDecision": "NOT_ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-039",
+    "academicScore": 86,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "entrance",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-040",
+    "academicScore": 43,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": true,
+    "specialQuota": false,
+    "incomeEligible": false,
+    "policyType": "standard",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  },
+  {
+    "candidateId": "CAND-041",
+    "academicScore": 49,
+    "academicEligible": false,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": false,
+    "categoryEligible": false,
+    "specialQuota": true,
+    "incomeEligible": true,
+    "policyType": "strict",
+    "muxInputs": {
+      "I0": 0,
+      "I1": 1,
+      "I2": 1,
+      "I3": 0
+    },
+    "selectLines": {
+      "S1": 0,
+      "S0": 1
+    },
+    "selectedInput": "I1",
+    "muxOutput": 1,
+    "expectedDecision": "REVIEW"
+  },
+  {
+    "candidateId": "CAND-042",
+    "academicScore": 65,
+    "academicEligible": true,
+    "entranceEligible": true,
+    "subjectEligible": true,
+    "documentsVerified": true,
+    "categoryEligible": false,
+    "specialQuota": false,
+    "incomeEligible": true,
+    "policyType": "inclusive",
+    "muxInputs": {
+      "I0": 1,
+      "I1": 1,
+      "I2": 0,
+      "I3": 1
+    },
+    "selectLines": {
+      "S1": 1,
+      "S0": 1
+    },
+    "selectedInput": "I3",
+    "muxOutput": 1,
+    "expectedDecision": "ELIGIBLE"
+  }
+]
+;
+
+/* ============================================================
+   admission.js — Candidate criteria -> MUX inputs -> decision
+   ============================================================
+   The MUX itself (mux.js) never changes. Only the *mapping* from
+   candidate criteria into I0..I3 / S1 / S0 changes between policies.
+   This is the "policy variation without changing the core MUX
+   mechanism" required by the assignment.
+*/
+
+const Admission = (() => {
+
+  const POLICIES = {
+    standard: {
+      label: 'Standard Admission Policy',
+      note: 'A balanced policy. Select lines come from overall academic and entrance performance.',
+      map(c){
+        return {
+          I0: (c.academic && c.subject) ? 1 : 0,          // basic eligibility
+          I1: (c.entrance && c.subject) ? 1 : 0,           // entrance-exam based
+          I2: (c.category || c.quota) ? 1 : 0,             // category / quota based
+          I3: (c.academic && c.entrance && c.documents) ? 1 : 0, // special / full eligibility
+          S1: c.academic ? 1 : 0,
+          S0: c.entrance ? 1 : 0,
+        };
+      }
+    },
+    strict: {
+      label: 'Strict Eligibility Policy',
+      note: 'Every path is gated by verified documents — nothing is approved without paperwork on file.',
+      map(c){
+        return {
+          I0: (c.academic && c.subject && c.documents) ? 1 : 0,
+          I1: (c.entrance && c.academic && c.documents) ? 1 : 0,
+          I2: (c.category && c.documents) ? 1 : 0,
+          I3: (c.academic && c.entrance && c.subject && c.documents) ? 1 : 0,
+          S1: (c.academic && c.documents) ? 1 : 0,
+          S0: (c.entrance && c.documents) ? 1 : 0,
+        };
+      }
+    },
+    inclusive: {
+      label: 'Inclusive Policy',
+      note: 'Widens the funnel — any one supporting factor (not all) can satisfy a path.',
+      map(c){
+        return {
+          I0: (c.academic || c.subject) ? 1 : 0,
+          I1: (c.entrance || c.subject) ? 1 : 0,
+          I2: (c.category || c.quota || c.income) ? 1 : 0,
+          I3: (c.academic || c.entrance) ? 1 : 0,
+          S1: (c.academic || c.category) ? 1 : 0,
+          S0: (c.entrance || c.quota) ? 1 : 0,
+        };
+      }
+    },
+    entrance: {
+      label: 'Entrance Priority Policy',
+      note: 'Entrance exam performance drives the select lines instead of academic score.',
+      map(c){
+        return {
+          I0: c.academic ? 1 : 0,
+          I1: c.subject ? 1 : 0,
+          I2: (c.category || c.quota) ? 1 : 0,
+          I3: (c.entrance && c.academic && c.subject) ? 1 : 0,
+          S1: c.entrance ? 1 : 0,
+          S0: c.academic ? 1 : 0,
+        };
+      }
+    }
+  };
+
+  /** Decision layer sits *after* the MUX — the MUX output Y is a single
+   *  bit, so a small documented rule turns it into the tri-state result
+   *  the admissions office needs (Eligible / Review / Not Eligible)
+   *  without ever hiding or overriding the raw MUX result. */
+  function decide(y, c){
+    if (y === 1){
+      return c.documents
+        ? { code:'ELIGIBLE', label:'Admission Eligible', icon:'🟢', pill:'pill-green' }
+        : { code:'REVIEW', label:'Waitlist / Review (documents pending)', icon:'🟡', pill:'pill-yellow' };
+    }
+    return (c.category || c.quota)
+      ? { code:'REVIEW', label:'Waitlist / Review (special consideration)', icon:'🟡', pill:'pill-yellow' }
+      : { code:'NOT_ELIGIBLE', label:'Not Eligible', icon:'🔴', pill:'pill-red' };
+  }
+
+  /** Full pipeline: criteria + policy name -> everything needed to render */
+  function run(criteria, policyName){
+    const policy = POLICIES[policyName] || POLICIES.standard;
+    const mapped = policy.map(criteria);
+    const I = [mapped.I0, mapped.I1, mapped.I2, mapped.I3];
+    const muxResult = MUX.evaluate(I, mapped.S1, mapped.S0);
+    const decision = decide(muxResult.y, criteria);
+    return { policy: policyName, policyLabel: policy.label, policyNote: policy.note, mapped, muxResult, decision };
+  }
+
+  /** Build the ordered list of explanation steps for the "Explain Decision" modal */
+  function explainSteps(criteria, result){
+    const c = criteria, m = result.mapped, r = result.muxResult, d = result.decision;
+    const steps = [
+      `Policy in effect: <b>${result.policyLabel}</b>.`,
+      `Candidate criteria read as Booleans — Academic=${MUX.bit(c.academic)}, Entrance=${MUX.bit(c.entrance)}, Subject=${MUX.bit(c.subject)}, Documents=${MUX.bit(c.documents)}, Category=${MUX.bit(c.category)}, Quota=${MUX.bit(c.quota)}, Income=${MUX.bit(c.income)}.`,
+      `Policy maps criteria to MUX inputs: I0=${m.I0}, I1=${m.I1}, I2=${m.I2}, I3=${m.I3}.`,
+      `Policy sets the select lines: S1=${m.S1}, S0=${m.S0}.`,
+      `S1S0 = ${m.S1}${m.S0} → the MUX selects <b>${r.selLabel}</b>.`,
+      `${r.selLabel} = ${r.y}, so the MUX output is <b>Y = ${r.y}</b>.`,
+      `Decision rule applies Y together with documents/category status → <b>${d.label}</b>.`
+    ];
+    return steps;
+  }
+
+  return { POLICIES, decide, run, explainSteps };
+})();
+
+/* ============================================================
+   truthTable.js — Renders the 4:1 MUX truth table
+   ============================================================ */
+
+const TruthTable = (() => {
+
+  function render(container, I, s1, s0){
+    const rows = MUX.truthTable(I);
+    const activeSel = MUX.selectIndex(s1, s0);
+    const html = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>S1</th><th>S0</th><th>Selected Input</th><th>Input Value</th><th>Output Y</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr class="${r.sel === activeSel ? 'active-row' : ''}">
+                <td>${r.s1}</td>
+                <td>${r.s0}</td>
+                <td>${r.selLabel}</td>
+                <td>${r.I[r.sel]}</td>
+                <td>${r.y}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    container.innerHTML = html;
+  }
+
+  return { render };
+})();
+
+/* ============================================================
+   tests.js — Automated Test Lab
+   ============================================================
+   Every test actually calls MUX.evaluate() / MUX.bit() — nothing
+   here is a hardcoded pass. 10 normal cases (TC01-TC10) exercise
+   ordinary truth-table behaviour; 5 edge/fault cases (TC11-TC15)
+   exercise boundary and malformed-input handling.
+*/
+
+const TestLab = (() => {
+
+  const CASES = [
+    { id:'TC01', type:'Normal', I:[0,0,0,0], s1:0, s0:0, expected:0, desc:'All inputs low, select I0' },
+    { id:'TC02', type:'Normal', I:[1,1,1,1], s1:0, s0:0, expected:1, desc:'All inputs high, select I0' },
+    { id:'TC03', type:'Normal', I:[1,0,0,0], s1:0, s0:0, expected:1, desc:'Only I0 high, I0 selected' },
+    { id:'TC04', type:'Normal', I:[0,1,0,0], s1:0, s0:1, expected:1, desc:'Only I1 high, I1 selected' },
+    { id:'TC05', type:'Normal', I:[0,0,1,0], s1:1, s0:0, expected:1, desc:'Only I2 high, I2 selected' },
+    { id:'TC06', type:'Normal', I:[0,0,0,1], s1:1, s0:1, expected:1, desc:'Only I3 high, I3 selected' },
+    { id:'TC07', type:'Normal', I:[1,1,0,0], s1:0, s0:1, expected:1, desc:'I1 selected among mixed inputs' },
+    { id:'TC08', type:'Normal', I:[1,1,0,0], s1:1, s0:0, expected:0, desc:'I2 selected but I2 is low' },
+    { id:'TC09', type:'Normal', I:[0,0,1,1], s1:0, s0:0, expected:0, desc:'I0 selected but I0 is low' },
+    { id:'TC10', type:'Normal', I:[1,0,1,0], s1:1, s0:1, expected:0, desc:'I3 selected but I3 is low' },
+    { id:'TC11', type:'Edge', I:[0,0,0,0], s1:1, s0:1, expected:0, desc:'Edge: all inputs 0, select lines at max (11)' },
+    { id:'TC12', type:'Edge', I:[1,1,1,1], s1:1, s0:1, expected:1, desc:'Edge: all inputs 1, select lines at max (11)' },
+    { id:'TC13', type:'Fault', I:[undefined,1,0,0], s1:0, s0:0, expected:0, desc:'Fault: missing candidate value (undefined I0) sanitized to 0' },
+    { id:'TC14', type:'Fault', I:[2,1,0,0], s1:0, s0:0, expected:1, desc:'Fault: invalid non-boolean input (I0=2) clamped to 1' },
+    { id:'TC15', type:'Fault', I:[], s1:undefined, s0:undefined, expected:0, desc:'Fault: empty form / no data — safe default output is 0' },
+  ];
+
+  function runAll(){
+    return CASES.map(tc => {
+      const r = MUX.evaluate(tc.I, tc.s1, tc.s0);
+      const pass = r.y === tc.expected;
+      return { ...tc, actual: r.y, selLabel: r.selLabel, pass };
+    });
+  }
+
+  return { CASES, runAll };
+})();
+
+/* ============================================================
+   analytics.js — dataset stats + MUX selection analytics
+   ============================================================ */
+
+const Analytics = (() => {
+
+  function summarize(records){
+    const total = records.length;
+    const counts = { ELIGIBLE:0, REVIEW:0, NOT_ELIGIBLE:0 };
+    const selCounts = { I0:0, I1:0, I2:0, I3:0 };
+    const policyCounts = {};
+    let scoreSum = 0;
+
+    records.forEach(rec => {
+      counts[rec.expectedDecision] = (counts[rec.expectedDecision] || 0) + 1;
+      selCounts[rec.selectedInput] = (selCounts[rec.selectedInput] || 0) + 1;
+      policyCounts[rec.policyType] = (policyCounts[rec.policyType] || 0) + 1;
+      scoreSum += rec.academicScore;
+    });
+
+    return {
+      total,
+      eligible: counts.ELIGIBLE || 0,
+      review: counts.REVIEW || 0,
+      notEligible: counts.NOT_ELIGIBLE || 0,
+      avgScore: total ? Math.round((scoreSum / total) * 10) / 10 : 0,
+      selCounts,
+      policyCounts
+    };
+  }
+
+  /** Simple horizontal bar chart built from plain CSS, so it works
+   *  identically in light/dark themes with zero external dependency. */
+  function barChart(container, data, colorVar){
+    const max = Math.max(...Object.values(data), 1);
+    container.innerHTML = Object.entries(data).map(([label, value]) => `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px">
+          <span class="mono">${label}</span><span class="mono muted">${value}</span>
+        </div>
+        <div class="progress-bar"><div style="width:${(value/max*100).toFixed(0)}%;background:${colorVar || 'var(--grad-brand)'}"></div></div>
+      </div>
+    `).join('');
+  }
+
+  return { summarize, barChart };
+})();
+
+/* ============================================================
+   learning.js — tutorial slides, interactive lesson, quiz, progress
+   ============================================================ */
+
+const Learning = (() => {
+  const PROGRESS_KEY = 'sam_progress';
+
+  const SLIDES = [
+    { title:'What is a Multiplexer?', body:'A multiplexer (MUX) is a combinational circuit that selects one of several input signals and forwards it to a single output, based on the value of its select lines.' },
+    { title:'4 Data Inputs', body:'A 4:1 MUX has four data inputs — I0, I1, I2 and I3 — only one of which reaches the output at any time.' },
+    { title:'2 Select Lines', body:'Two select lines, S1 and S0, together form a 2-bit address (00,01,10,11) that chooses which of the four inputs is connected to the output.' },
+    { title:'One Output', body:'The single output Y always carries the value of whichever input is currently selected: Y = I[selected].' },
+    { title:'Truth Table', body:'S1S0 = 00 → I0, 01 → I1, 10 → I2, 11 → I3. This mapping is fixed and forms the backbone of every decision the MUX makes.' },
+    { title:'Boolean Equation', body:"Y = I0·S1'·S0' + I1·S1'·S0 + I2·S1·S0' + I3·S1·S0 — only one product term is ever 1 at a time, matching the selected input." },
+    { title:'Admission Application', body:'In this project, candidate eligibility criteria become the MUX inputs and select lines, so the MUX itself decides which admission path applies.' },
+  ];
+
+  const QUIZ = [
+    { q:'If S1 = 1 and S0 = 0, which input is selected?', options:['I0','I1','I2','I3'], answer:2 },
+    { q:'How many data inputs does a 4:1 MUX have?', options:['2','4','8','1'], answer:1 },
+    { q:'Which term of the Boolean equation is active when S1S0 = 01?', options:["I0·S1'·S0'", "I1·S1'·S0", "I2·S1·S0'", "I3·S1·S0"], answer:1 },
+    { q:'What does the single output Y represent?', options:['The sum of all inputs','The value of the selected input','Always 1','The number of select lines'], answer:1 },
+    { q:'If all four inputs are 0, what is Y regardless of S1/S0?', options:['1','Undefined','0','Depends on policy'], answer:2 },
+  ];
+
+  let slideIndex = 0;
+  let quizIndex = 0;
+  let quizScore = 0;
+
+  function getProgress(){
+    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch(e){ return {}; }
+  }
+  function markDone(key){
+    const p = getProgress();
+    p[key] = true;
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch(e){ /* ignore */ }
+    renderProgress();
+  }
+  function renderProgress(){
+    const el = document.getElementById('learningProgress');
+    if (!el) return;
+    const p = getProgress();
+    const items = [
+      { key:'basics', label:'MUX basics' },
+      { key:'truthtable', label:'Truth table' },
+      { key:'simulator', label:'Simulator' },
+      { key:'equation', label:'Boolean equation' },
+      { key:'quiz', label:'Quiz' },
+    ];
+    const done = items.filter(i => p[i.key]).length;
+    const pct = Math.round((done / items.length) * 100);
+    el.innerHTML = `
+      <div class="progress-bar"><div style="width:${pct}%"></div></div>
+      <div class="small muted mt-24">${pct}% complete</div>
+      <ul class="check-list">
+        ${items.map(i => `<li class="${p[i.key] ? 'done' : ''}">${p[i.key] ? '✓' : '□'} ${i.label}</li>`).join('')}
+      </ul>
+    `;
+  }
+
+  function renderSlide(){
+    const s = SLIDES[slideIndex];
+    const wrap = document.getElementById('tutorialSlide');
+    if (!wrap) return;
+    wrap.classList.remove('slide-in');
+    void wrap.offsetWidth;
+    wrap.innerHTML = `
+      <div class="pill pill-purple mb-24">Slide ${slideIndex+1} / ${SLIDES.length}</div>
+      <h3>${s.title}</h3>
+      <p>${s.body}</p>
+    `;
+    wrap.classList.add('slide-in');
+    document.getElementById('slidePrev').disabled = slideIndex === 0;
+    document.getElementById('slideNext').textContent = slideIndex === SLIDES.length - 1 ? 'Finish ✓' : 'Next →';
+  }
+
+  function nextSlide(){
+    if (slideIndex < SLIDES.length - 1){ slideIndex++; renderSlide(); }
+    else { markDone('basics'); }
+  }
+  function prevSlide(){ if (slideIndex > 0){ slideIndex--; renderSlide(); } }
+
+  function renderQuiz(){
+    const wrap = document.getElementById('quizBody');
+    if (!wrap) return;
+    if (quizIndex >= QUIZ.length){
+      markDone('quiz');
+      wrap.innerHTML = `
+        <div class="text-center">
+          <span class="result-emoji">🏆</span>
+          <h3>Score: ${quizScore} / ${QUIZ.length}</h3>
+          <p>You've completed the MUX quiz.</p>
+          <button class="btn btn-ghost btn-sm" id="quizRestart">Try Again</button>
+        </div>
+      `;
+      document.getElementById('quizRestart').addEventListener('click', () => { quizIndex = 0; quizScore = 0; renderQuiz(); });
+      return;
+    }
+    const item = QUIZ[quizIndex];
+    wrap.innerHTML = `
+      <div class="pill pill-purple mb-24">Question ${quizIndex+1} / ${QUIZ.length}</div>
+      <h3 style="font-size:1.15rem">${item.q}</h3>
+      <div class="card-grid grid-2 mt-24" id="quizOptions">
+        ${item.options.map((o,i) => `<button class="btn btn-ghost" data-i="${i}">${o}</button>`).join('')}
+      </div>
+      <div id="quizFeedback" class="mt-24 small"></div>
+    `;
+    wrap.querySelectorAll('#quizOptions button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.i);
+        const correct = i === item.answer;
+        if (correct) quizScore++;
+        document.getElementById('quizFeedback').innerHTML = correct
+          ? `<span class="pill pill-green">✓ Correct!</span>`
+          : `<span class="pill pill-red">✗ Not quite — correct answer: ${item.options[item.answer]}</span>`;
+        wrap.querySelectorAll('#quizOptions button').forEach(b => b.disabled = true);
+        setTimeout(() => { quizIndex++; renderQuiz(); }, 900);
+      });
+    });
+  }
+
+  function init(){
+    renderProgress();
+    slideIndex = 0; renderSlide();
+    document.getElementById('slideNext').addEventListener('click', nextSlide);
+    document.getElementById('slidePrev').addEventListener('click', prevSlide);
+    quizIndex = 0; quizScore = 0; renderQuiz();
+  }
+
+  return { init, markDone, renderProgress, SLIDES, QUIZ };
+})();
+
+/* ============================================================
+   app.js — navigation, modals, scroll reveal, and page wiring
+   ============================================================ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  Theme.init();
+  initBackgroundFX();
+  initNav();
+  initReveal();
+  initHeroDiagram();
+  initMuxSimulator();
+  initAdmissionSimulator();
+  initTestLab();
+  initDataset();
+  initAnalytics();
+  Learning.init();
+  initTooltipsNote();
+  document.addEventListener('sam:themechange', () => {
+    // redraw anything theme-sensitive (SVGs read CSS vars live, so mostly a no-op,
+    // but simulators re-render to keep gradients crisp)
+    if (window.__redrawMux) window.__redrawMux();
+  });
+});
+
+/* ---------------- Background particles ---------------- */
+function initBackgroundFX(){
+  const fx = document.createElement('div');
+  fx.className = 'bg-fx';
+  fx.innerHTML = `<div class="bg-blob b1"></div><div class="bg-blob b2"></div><div class="bg-blob b3"></div>`;
+  document.body.appendChild(fx);
+}
+
+/* ---------------- Navigation ---------------- */
+function initNav(){
+  const views = document.querySelectorAll('.view');
+  const navButtons = document.querySelectorAll('[data-view]');
+
+  function go(view){
+    views.forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+    navButtons.forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    window.scrollTo({ top:0, behavior:'instant' in document.documentElement.style ? 'instant' : 'auto' });
+    closeMobileMenu();
+  }
+  navButtons.forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
+  go('home');
+  window.__navigate = go;
+
+  const hamburger = document.getElementById('hamburger');
+  hamburger.addEventListener('click', () => {
+    const menu = document.getElementById('mobileMenu');
+    const scrim = document.getElementById('menuScrim');
+    const open = !menu.classList.contains('open');
+    hamburger.classList.toggle('open', open);
+    menu.classList.toggle('open', open);
+    scrim.classList.toggle('open', open);
+  });
+  document.getElementById('menuScrim').addEventListener('click', closeMobileMenu);
+}
+function closeMobileMenu(){
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('menuScrim').classList.remove('open');
+}
+
+/* ---------------- Scroll reveal ---------------- */
+function initReveal(){
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold:.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+}
+
+/* ---------------- Generic modal ---------------- */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', (e) => {
+  if (e.target.matches('.modal-scrim')) e.target.classList.remove('open');
+  if (e.target.matches('[data-close-modal]')) e.target.closest('.modal-scrim').classList.remove('open');
+});
+
+/* ---------------- Tooltips note ---------------- */
+function initTooltipsNote(){ /* tooltips are pure CSS via .tip[data-tip], no JS needed */ }
+
+/* ============================================================
+   HERO — animated 4:1 MUX + interactive mini lesson
+   ============================================================ */
+function initHeroDiagram(){
+  const el = document.getElementById('heroMux');
+  let state = { I:[1,0,1,0], s1:0, s0:0 };
+  function draw(){ MUX.renderDiagram(el, { ...state, animate:true }); }
+  draw();
+  let s1 = 0, s0 = 0;
+  setInterval(() => {
+    s0 = 1 - s0;
+    if (s0 === 0) s1 = 1 - s1;
+    state.s1 = s1; state.s0 = s0;
+    draw();
+  }, 1800);
+
+  document.getElementById('btnTrySimulator').addEventListener('click', () => window.__navigate('simulator'));
+  document.getElementById('btnExploreMux').addEventListener('click', () => window.__navigate('learn'));
+}
+
+/* ============================================================
+   MUX SIMULATOR PAGE
+   ============================================================ */
+function initMuxSimulator(){
+  const state = { I:[1,0,1,1], s1:1, s0:0 };
+  const diagramEl = document.getElementById('simDiagram');
+  const eqEl = document.getElementById('simEquation');
+  const tableEl = document.getElementById('simTruthTable');
+  const outEl = document.getElementById('simOutput');
+  const detailEl = document.getElementById('simDetail');
+
+  function redraw(){
+    const r = MUX.renderDiagram(diagramEl, { I:state.I, s1:state.s1, s0:state.s0, animate:true });
+    MUX.renderEquation(eqEl, state.s1, state.s0);
+    TruthTable.render(tableEl, state.I, state.s1, state.s0);
+    outEl.textContent = r.y;
+    outEl.classList.toggle('one', r.y === 1);
+    detailEl.innerHTML = `Select lines <b>S1S0 = ${r.s1}${r.s0}</b> → selected input <b>${r.selLabel}</b> → Y = <b>${r.y}</b>`;
+    Learning.markDone('simulator');
+    Learning.markDone('truthtable');
+    Learning.markDone('equation');
+  }
+
+  ['I0','I1','I2','I3'].forEach((id, idx) => {
+    const btn = document.getElementById('sw_' + id);
+    btn.classList.toggle('on', state.I[idx] === 1);
+    btn.addEventListener('click', () => {
+      state.I[idx] = state.I[idx] ? 0 : 1;
+      btn.classList.toggle('on', state.I[idx] === 1);
+      redraw();
+    });
+  });
+  ['s1','s0'].forEach(sel => {
+    const btn = document.getElementById('sw_' + sel);
+    btn.classList.toggle('on', state[sel] === 1);
+    btn.addEventListener('click', () => {
+      state[sel] = state[sel] ? 0 : 1;
+      btn.classList.toggle('on', state[sel] === 1);
+      redraw();
+    });
+  });
+
+  window.__redrawMux = redraw;
+  redraw();
+}
+
+/* ============================================================
+   ADMISSION SIMULATOR PAGE
+   ============================================================ */
+function initAdmissionSimulator(){
+  const criteriaKeys = ['academic','entrance','subject','documents','category','quota','income'];
+  const criteriaLabels = {
+    academic:'Academic Eligibility (≥60%)', entrance:'Entrance Exam Eligibility', subject:'Required Subject Eligibility',
+    documents:'Documents Verified', category:'Category Eligibility', quota:'Special Quota', income:'Income / Scholarship Eligibility'
+  };
+  const criteriaHints = {
+    academic:'Meets the minimum aggregate percentage.', entrance:'Cleared the entrance examination cutoff.',
+    subject:'Has studied the required subject combination.', documents:'Identity and marksheets verified by the office.',
+    category:'Belongs to a reserved category with relaxed criteria.', quota:'Eligible under a special institutional quota.',
+    income:'Meets income criteria for scholarship consideration.'
+  };
+  const state = { criteria:{ academic:true, entrance:true, subject:true, documents:true, category:false, quota:false, income:false }, policy:'standard' };
+
+  const form = document.getElementById('criteriaForm');
+  form.innerHTML = criteriaKeys.map(k => `
+    <div class="bit-row">
+      <label>${criteriaLabels[k]}<span class="hint">${criteriaHints[k]}</span></label>
+      <button class="bit-switch ${state.criteria[k] ? 'on' : ''}" data-k="${k}" type="button" aria-label="${criteriaLabels[k]}">
+        <span class="val v0">0</span><span class="val v1">1</span>
+      </button>
+    </div>
+  `).join('');
+  form.querySelectorAll('.bit-switch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const k = btn.dataset.k;
+      state.criteria[k] = !state.criteria[k];
+      btn.classList.toggle('on', state.criteria[k]);
+    });
+  });
+
+  const policySelect = document.getElementById('policySelect');
+  policySelect.innerHTML = Object.entries(Admission.POLICIES).map(([k,p]) => `<option value="${k}">${p.label}</option>`).join('');
+  policySelect.value = state.policy;
+  policySelect.addEventListener('change', () => { state.policy = policySelect.value; });
+
+  let lastResult = null;
+
+  document.getElementById('btnEvaluate').addEventListener('click', () => {
+    const overlay = document.getElementById('processingOverlay');
+    const resultWrap = document.getElementById('admissionResult');
+    resultWrap.style.display = 'none';
+    overlay.style.display = 'block';
+    const lines = [
+      'Reading candidate data...', 'Checking eligibility...', 'Generating Boolean signals...',
+      'Mapping MUX inputs...', 'Applying select lines...', 'Selecting MUX input...',
+      'Generating output...', 'Decision ready!'
+    ];
+    overlay.innerHTML = `<div class="spinner"></div>` + lines.map(l => `<div class="line">${l}</div>`).join('');
+    const lineEls = overlay.querySelectorAll('.line');
+    lineEls.forEach((el,i) => setTimeout(() => el.classList.add('show'), 150 + i*170));
+
+    setTimeout(() => {
+      lastResult = Admission.run(state.criteria, state.policy);
+      renderResult(lastResult);
+      overlay.style.display = 'none';
+      resultWrap.style.display = 'block';
+      resultWrap.classList.remove('pop-in'); void resultWrap.offsetWidth; resultWrap.classList.add('pop-in');
+    }, 150 + lines.length*170 + 250);
+  });
+
+  function renderResult(result){
+    const { decision, muxResult, mapped } = result;
+    document.getElementById('resultCard').innerHTML = `
+      <span class="result-emoji">${decision.icon}</span>
+      <h3>${decision.label}</h3>
+      <div class="pill ${decision.pill}">${result.policyLabel}</div>
+      <div class="result-meta">
+        <div><b>${muxResult.y}</b>MUX Output (Y)</div>
+        <div><b>${muxResult.selLabel}</b>Selected Input</div>
+        <div><b>${muxResult.s1}${muxResult.s0}</b>Select Lines (S1S0)</div>
+      </div>
+      <button class="btn btn-primary" id="btnExplain">🔍 Explain Decision</button>
+    `;
+    document.getElementById('resultDiagram') && MUX.renderDiagram(document.getElementById('resultDiagram'), { I:[mapped.I0,mapped.I1,mapped.I2,mapped.I3], s1:mapped.S1, s0:mapped.S0 });
+    document.getElementById('resultLogicPanel').innerHTML = `
+      <h4>Logic State Panel</h4>
+      <div class="small mono">
+        <div class="muted mt-24">Candidate Criteria</div>
+        ${Object.entries(result.criteria || state.criteria).map(([k,v]) => `<div>${k.padEnd(10)} ${MUX.bit(v)}</div>`).join('')}
+        <div class="muted mt-24">MUX Mapping</div>
+        <div>I0 = ${mapped.I0}</div><div>I1 = ${mapped.I1}</div><div>I2 = ${mapped.I2}</div><div>I3 = ${mapped.I3}</div>
+        <div class="muted mt-24">Select Lines</div>
+        <div>S1 = ${mapped.S1}</div><div>S0 = ${mapped.S0}</div>
+        <div class="muted mt-24">Selected Input: <b>${muxResult.selLabel}</b></div>
+        <div class="muted">MUX Output: <b>${muxResult.y}</b></div>
+        <div class="muted">Decision: <b>${decision.code}</b></div>
+      </div>
+    `;
+    document.getElementById('btnExplain').addEventListener('click', () => showExplain(result));
+  }
+
+  function showExplain(result){
+    const steps = Admission.explainSteps(state.criteria, result);
+    const body = document.getElementById('explainBody');
+    body.innerHTML = steps.map((s,i) => `<div class="explain-step" data-i="${i}"><span class="num">${i+1}</span><div>${s}</div></div>`) .join('') +
+      `<div class="explain-step" data-i="${steps.length}"><span class="num">✓</span><div style="font-weight:700">Final decision: ${result.decision.icon} ${result.decision.label}</div></div>`;
+    openModal('explainModal');
+    body.querySelectorAll('.explain-step').forEach((el,i) => setTimeout(() => el.classList.add('show'), i*260));
+  }
+}
+
+/* ============================================================
+   TEST LAB PAGE
+   ============================================================ */
+function initTestLab(){
+  const tableBody = document.getElementById('testTableBody');
+  const summaryEl = document.getElementById('testSummary');
+
+  function renderTable(results){
+    tableBody.innerHTML = results.map(r => `
+      <tr class="${r.pass ? 'pass' : 'fail'}">
+        <td>${r.id}</td>
+        <td><span class="pill ${r.type==='Normal'?'pill-purple':r.type==='Edge'?'pill-yellow':'pill-red'}">${r.type}</span></td>
+        <td class="small">${r.desc}</td>
+        <td>[${(r.I||[]).map(v=>v===undefined?'—':v).join(',')}]</td>
+        <td>${r.s1===undefined?'—':r.s1}${r.s0===undefined?'—':r.s0}</td>
+        <td>${r.expected}</td>
+        <td>${r.actual}</td>
+        <td class="status">${r.pass ? '✓ PASS' : '✗ FAIL'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // show static (not-yet-run) view initially
+  renderTable(TestLab.CASES.map(c => ({ ...c, actual:'—', pass:true })));
+
+  document.getElementById('btnRunTests').addEventListener('click', () => {
+    tableBody.innerHTML = `<tr><td colspan="8" class="text-center muted">Running tests...</td></tr>`;
+    setTimeout(() => {
+      const results = TestLab.runAll();
+      renderTable(results);
+      const passed = results.filter(r => r.pass).length;
+      summaryEl.innerHTML = `
+        <div class="card-grid grid-4 mt-24">
+          <div class="card text-center"><div class="glow-badge" style="margin:0 auto 10px">📋</div><b style="font-size:1.4rem">${results.length}</b><div class="small muted">Total Tests</div></div>
+          <div class="card text-center"><div class="glow-badge" style="margin:0 auto 10px">✅</div><b style="font-size:1.4rem;color:var(--green)">${passed}</b><div class="small muted">Passed</div></div>
+          <div class="card text-center"><div class="glow-badge" style="margin:0 auto 10px">❌</div><b style="font-size:1.4rem;color:var(--red)">${results.length-passed}</b><div class="small muted">Failed</div></div>
+          <div class="card text-center"><div class="glow-badge" style="margin:0 auto 10px">📈</div><b style="font-size:1.4rem">${Math.round(passed/results.length*100)}%</b><div class="small muted">Pass Rate</div></div>
+        </div>
+      `;
+    }, 500);
+  });
+}
+
+/* ============================================================
+   DATASET EXPLORER PAGE
+   ============================================================ */
+function initDataset(){
+  const records = (typeof CANDIDATES !== 'undefined') ? CANDIDATES : [];
+  const tableBody = document.getElementById('datasetTableBody');
+  const statsEl = document.getElementById('datasetStats');
+  const searchInput = document.getElementById('datasetSearch');
+  const filterSelect = document.getElementById('datasetFilter');
+  const sortSelect = document.getElementById('datasetSort');
+
+  function computeStats(list){
+    const s = Analytics.summarize(list);
+    statsEl.innerHTML = `
+      <div class="card-grid grid-4">
+        <div class="card text-center"><b style="font-size:1.5rem">${s.total}</b><div class="small muted">Total Candidates</div></div>
+        <div class="card text-center"><b style="font-size:1.5rem;color:var(--green)">${s.eligible}</b><div class="small muted">Eligible</div></div>
+        <div class="card text-center"><b style="font-size:1.5rem;color:var(--red)">${s.notEligible}</b><div class="small muted">Not Eligible</div></div>
+        <div class="card text-center"><b style="font-size:1.5rem">${s.avgScore}%</b><div class="small muted">Avg. Academic Score</div></div>
+      </div>
+    `;
+  }
+
+  function renderRows(list){
+    tableBody.innerHTML = list.map(r => `
+      <tr>
+        <td>${r.candidateId}</td>
+        <td>${r.academicScore}%</td>
+        <td>${r.policyType}</td>
+        <td>[${r.muxInputs.I0},${r.muxInputs.I1},${r.muxInputs.I2},${r.muxInputs.I3}]</td>
+        <td>${r.selectLines.S1}${r.selectLines.S0}</td>
+        <td>${r.selectedInput}</td>
+        <td>${r.muxOutput}</td>
+        <td><span class="pill ${r.expectedDecision==='ELIGIBLE'?'pill-green':r.expectedDecision==='REVIEW'?'pill-yellow':'pill-red'}">${r.expectedDecision.replace('_',' ')}</span></td>
+      </tr>
+    `).join('') || `<tr><td colspan="8" class="text-center muted">No matching candidates.</td></tr>`;
+  }
+
+  function apply(){
+    let list = records.slice();
+    const q = (searchInput.value || '').toLowerCase();
+    if (q) list = list.filter(r => r.candidateId.toLowerCase().includes(q));
+    const f = filterSelect.value;
+    if (f !== 'all') list = list.filter(r => r.expectedDecision === f);
+    const s = sortSelect.value;
+    if (s === 'score_desc') list.sort((a,b) => b.academicScore - a.academicScore);
+    if (s === 'score_asc') list.sort((a,b) => a.academicScore - b.academicScore);
+    if (s === 'id') list.sort((a,b) => a.candidateId.localeCompare(b.candidateId));
+    renderRows(list);
+    computeStats(list);
+  }
+
+  searchInput.addEventListener('input', apply);
+  filterSelect.addEventListener('change', apply);
+  sortSelect.addEventListener('change', apply);
+  apply();
+}
+
+/* ============================================================
+   ANALYTICS PAGE
+   ============================================================ */
+function initAnalytics(){
+  const records = (typeof CANDIDATES !== 'undefined') ? CANDIDATES : [];
+  const s = Analytics.summarize(records);
+
+  document.getElementById('analyticsHeadline').innerHTML = `
+    <div class="card-grid grid-4">
+      <div class="card text-center"><b style="font-size:1.6rem">${s.total}</b><div class="small muted">Total Candidates</div></div>
+      <div class="card text-center"><b style="font-size:1.6rem;color:var(--green)">${s.eligible}</b><div class="small muted">Eligible</div></div>
+      <div class="card text-center"><b style="font-size:1.6rem;color:var(--yellow)">${s.review}</b><div class="small muted">Review</div></div>
+      <div class="card text-center"><b style="font-size:1.6rem">${s.avgScore}%</b><div class="small muted">Avg. Score</div></div>
+    </div>
+  `;
+  Analytics.barChart(document.getElementById('chartDecisions'), { Eligible:s.eligible, Review:s.review, 'Not Eligible':s.notEligible });
+  Analytics.barChart(document.getElementById('chartSelections'), s.selCounts, 'var(--grad-warm)');
+  Analytics.barChart(document.getElementById('chartPolicies'), s.policyCounts);
+}
+
+</script>
+<script>
+  // Interactive lesson wiring (kept inline: tiny and page-specific)
+  document.addEventListener('DOMContentLoaded', () => {
+    const state = { I:[1,0,1,0], s1:0, s0:0 };
+    const el = document.getElementById('lessonDiagram');
+    const detail = document.getElementById('lessonDetail');
+    function redraw(){
+      const r = MUX.renderDiagram(el, { ...state, animate:true });
+      detail.innerHTML = `S1S0 = <b>${r.s1}${r.s0}</b> → selected input <b>${r.selLabel}</b> → Y = <b>${r.y}</b>`;
+    }
+    ['I0','I1','I2','I3'].forEach((id,idx) => {
+      const btn = document.getElementById('lesson_' + id);
+      btn.classList.toggle('on', state.I[idx] === 1);
+      btn.addEventListener('click', () => { state.I[idx] = state.I[idx] ? 0 : 1; btn.classList.toggle('on', state.I[idx]===1); redraw(); });
+    });
+    ['s1','s0'].forEach(k => {
+      const btn = document.getElementById('lesson_' + k);
+      btn.addEventListener('click', () => { state[k] = state[k] ? 0 : 1; btn.classList.toggle('on', state[k]===1); redraw(); });
+    });
+    redraw();
+  });
+</script>
+</body>
+</html>
